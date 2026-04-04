@@ -23,6 +23,8 @@ const STORAGE_KEYS = {
   examStarted: "milestones_exam_started",
   examComplete: "milestones_exam_complete",
   timeRemaining: "milestones_time_remaining",
+  questionCount: "milestones_question_count",
+  sessionQuestions: "milestones_session_questions",
 };
 
 function getStoredJSON(key, fallback) {
@@ -79,8 +81,13 @@ export default function SimulationShell() {
     getStoredNumber(STORAGE_KEYS.timeRemaining, EXAM_DURATION_SECONDS)
   );
 
-  const [questionCount, setQuestionCount] = useState(10);
-  const [sessionQuestions, setSessionQuestions] = useState([]);
+const [questionCount, setQuestionCount] = useState(() =>
+  getStoredNumber(STORAGE_KEYS.questionCount, 10)
+);
+
+const [sessionQuestions, setSessionQuestions] = useState(() =>
+  getStoredJSON(STORAGE_KEYS.sessionQuestions, [])
+);
 
   const questions = useMemo(() => {
     if (sessionQuestions.length > 0) {
@@ -144,6 +151,16 @@ export default function SimulationShell() {
       setIndex(questions.length - 1);
     }
   }, [index, questions]);
+useEffect(() => {
+  localStorage.setItem(STORAGE_KEYS.questionCount, String(questionCount));
+}, [questionCount]);
+
+useEffect(() => {
+  localStorage.setItem(
+    STORAGE_KEYS.sessionQuestions,
+    JSON.stringify(sessionQuestions)
+  );
+}, [sessionQuestions]);
 
   useEffect(() => {
     if (!examStarted || examComplete) return;
@@ -247,6 +264,8 @@ export default function SimulationShell() {
       STORAGE_KEYS.timeRemaining,
       String(EXAM_DURATION_SECONDS)
     );
+    localStorage.setItem(STORAGE_KEYS.questionCount, "10");
+localStorage.setItem(STORAGE_KEYS.sessionQuestions, JSON.stringify([]));
   }
 
   function clearSavedProgress() {
